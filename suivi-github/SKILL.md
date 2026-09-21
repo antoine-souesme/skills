@@ -22,6 +22,49 @@ Chaque issue tombe dans une seule des trois catégories.
 Une issue peut d'abord poser une question technique, puis devenir acceptée une
 fois la réponse obtenue. C'est le cas normal.
 
+## Grouper des tickets
+
+Deux tickets acceptés partent parfois ensemble, en une seule spec, un seul plan
+et une seule implémentation. C'est l'exception, pas la règle — mais quand elle
+s'applique, la refuser fait payer deux fois le même travail, et la deuxième
+implémentation défait souvent des choix de la première.
+
+### Quand grouper
+
+Il faut **les deux** conditions :
+
+- **Ils touchent le même endroit du code.** Pas le même domaine — le même
+  fichier, la même règle, la même table. Deux tickets de facturation qui ne se
+  croisent nulle part ne se groupent pas.
+- **Faire le second après le premier obligerait à revenir sur le premier.** Si
+  l'ordre est indifférent, ce sont deux tickets, et ils partent l'un après
+  l'autre.
+
+Signes concrets : les deux ont besoin de la même colonne, du même point de
+passage, du même écran ; ou l'un des deux tickets dit lui-même qu'il « touche la
+même règle » que l'autre.
+
+### Quand ne pas grouper
+
+- **Deux tickets simplement voisins.** Un même écran touché à deux endroits
+  différents, deux sujets du même domaine : ça ne suffit pas.
+- **Dès que le total devient lourd.** Un groupe reste raisonnable. Au-delà de
+  deux tickets, ou si le plan combiné dépasse une douzaine de tâches, on
+  sépare : une grosse implémentation qui casse coûte plus cher que deux petites.
+  Mieux vaut un socle commun livré d'abord, puis le second ticket par-dessus.
+- **Si l'un des deux a encore une question ouverte.** On ne groupe jamais un
+  ticket accepté avec un ticket en attente de réponse.
+
+### Ce qu'il faut faire ensuite
+
+Le groupement se dit au responsable produit au moment de présenter le design,
+avec ce que les tickets partagent — c'est ça qui justifie le regroupement, pas
+leur proximité de sujet. Une fois retenu, il s'écrit dans `docs/suivi/GITHUB.md`,
+parce qu'une session suivante n'a aucun moyen de le redeviner.
+
+La branche et la PR portent alors les deux numéros, et la description referme les
+deux : une ligne `Closes #<n>` par ticket.
+
 ## Le déroulé
 
 0. **Lire `docs/suivi/GITHUB.md`** avant toute autre chose. Il porte l'état
@@ -56,6 +99,9 @@ fois la réponse obtenue. C'est le cas normal.
 4. **Repérer les dépendances entre issues.** Une issue qui dit dépendre d'une
    autre non tranchée n'est pas acceptable, même si son besoin est limpide.
    Elle part en commentaire.
+
+   Au passage, repérer aussi les issues qui **partagent un socle** et gagneraient
+   à partir ensemble. Voir « Grouper des tickets ».
 
 5. **Traiter** chaque issue selon sa catégorie, en commençant par les questions
    techniques : leur réponse change ce qui devient acceptable.
@@ -239,6 +285,10 @@ silence.
 | Commencer une session sans lire `docs/suivi/GITHUB.md` | On redécide ce qui l'a déjà été, et on casse des groupements retenus. |
 | Écrire dans le fichier de suivi ce qui a été livré | Ce n'est pas un historique. `git log` et `gh` le disent mieux. Un ticket livré en disparaît. |
 | Ne mettre le fichier de suivi à jour qu'en fin de session | Une session interrompue perd alors toutes ses décisions. |
+| Grouper deux tickets parce qu'ils parlent du même domaine | Il faut le même endroit du code, et un ordre qui obligerait sinon à revenir sur le premier. |
+| Grouper trois tickets ou plus pour aller plus vite | Une grosse implémentation qui casse coûte plus cher que deux petites. On sépare. |
+| Traiter deux tickets d'un même socle l'un après l'autre sans regarder | Le second défait des choix du premier, et on paie deux fois le même travail. |
+| Grouper sans l'écrire dans le fichier de suivi | La session suivante n'a aucun moyen de le redeviner. |
 
 ## Le rapport final
 
