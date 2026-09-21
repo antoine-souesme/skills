@@ -24,11 +24,22 @@ fois la réponse obtenue. C'est le cas normal.
 
 ## Le déroulé
 
+0. **Lire `docs/suivi/GITHUB.md`** avant toute autre chose. Il porte l'état
+   courant du traitement : l'ordre retenu, les groupements décidés, les
+   périmètres réduits, les dépendances à surveiller. C'est ce qui permet de
+   reprendre une session interrompue sans redécider ce qui l'a déjà été.
+
+   S'il n'existe pas, c'est une première session : il se crée à l'étape 7.
+
 1. **Lister** les issues ouvertes avec leur auteur, leurs labels et leur date.
 
    ```bash
    gh issue list --state open --limit 50 --json number,title,labels,author,createdAt
    ```
+
+   Croiser avec le fichier de suivi : un ticket qui y figure mais n'est plus
+   ouvert est livré, il sort du fichier. Un ticket ouvert qui n'y figure pas est
+   nouveau, il passe au tri.
 
 2. **Lire** chaque issue avec ses commentaires — un ticket déjà commenté a
    peut-être déjà reçu sa réponse.
@@ -50,6 +61,47 @@ fois la réponse obtenue. C'est le cas normal.
    techniques : leur réponse change ce qui devient acceptable.
 
 6. **Planifier** les issues acceptées avec `/spec-to-implementation`.
+
+7. **Mettre à jour `docs/suivi/GITHUB.md`** dès qu'une décision est prise, pas en
+   fin de session : un groupement retenu, un ordre arrêté, un périmètre réduit,
+   une dépendance repérée, un ticket passé en attente. Voir « Le fichier de
+   suivi » plus bas.
+
+## Le fichier de suivi
+
+`docs/suivi/GITHUB.md` est le point de reprise entre deux sessions. Il répond à
+une seule question : **par quoi on continue, et qu'est-ce qui a déjà été décidé ?**
+
+### Ce qu'il contient
+
+- L'ordre de traitement retenu, et pourquoi.
+- Les groupements décidés : quels tickets partent ensemble, et ce qu'ils
+  partagent.
+- La liste des tickets à implémenter, rangés par domaine.
+- Les tickets en attente de réponse, avec **en une ligne ce qui bloque** — pour
+  ne pas avoir à relire le commentaire déposé sur GitHub.
+- Les dépendances à surveiller, et le ticket le plus bloquant s'il y en a un.
+- Les décisions de périmètre : un ticket livré en version réduite, la partie
+  laissée de côté et ce qu'elle attend.
+
+### Ce qu'il ne contient jamais
+
+- **Aucun historique.** Pas de « livré », pas de numéros de PR, pas de dates de
+  fusion, pas de récapitulatif de ce qui a été fait. Tout cela se retrouve en une
+  commande avec `git log` et `gh issue list --state closed`. Un ticket livré
+  disparaît du fichier.
+- Pas de recopie du contenu des tickets : le ticket est sur GitHub, on n'en
+  garde ici que le numéro, le titre et la décision.
+- Pas de détail d'implémentation : ça vit dans le plan, sur la branche du ticket.
+
+Règle de tri : si l'information se retrouve avec `gh` ou `git`, elle n'a pas sa
+place ici. Ce qui reste, c'est ce qui n'existe nulle part ailleurs — les
+décisions.
+
+### Quand l'écrire
+
+À chaque décision, au fil de la session. Un fichier mis à jour seulement à la fin
+est un fichier perdu si la session s'interrompt.
 
 ## Les labels
 
@@ -184,12 +236,15 @@ silence.
 | Lancer plusieurs tickets acceptés en même temps | Les implémentations se marchent dessus. Un ticket à la fois, et on demande avant de passer au suivant. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/launching-agent-below`. |
+| Commencer une session sans lire `docs/suivi/GITHUB.md` | On redécide ce qui l'a déjà été, et on casse des groupements retenus. |
+| Écrire dans le fichier de suivi ce qui a été livré | Ce n'est pas un historique. `git log` et `gh` le disent mieux. Un ticket livré en disparaît. |
+| Ne mettre le fichier de suivi à jour qu'en fin de session | Une session interrompue perd alors toutes ses décisions. |
 
 ## Le rapport final
 
-Tout à la fin, une fois le dernier ticket lancé ou la liste épuisée, terminer
-par ce rapport et rien d'autre. Pas de résumé des tickets, pas de rappel de ce qui a
-été fait.
+Tout à la fin, une fois le dernier ticket lancé ou la liste épuisée, vérifier que
+`docs/suivi/GITHUB.md` reflète bien l'état courant, puis terminer par ce rapport
+et rien d'autre. Pas de résumé des tickets, pas de rappel de ce qui a été fait.
 
 ```
 ---
