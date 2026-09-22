@@ -9,7 +9,11 @@ Analyse le plan que tu as écris lors de cette session et vérifie qu'il peut ê
 
 ## Avant l'exécution
 
-- Si le plan comporte 10 étapes ou moins, l'agent peut passer directement à l'exécution inline, sinon il doit le faire en subagent-driven development. 
+- Le seuil se compte en **tâches** du plan, c'est-à-dire ses sections `### Task N`. Jamais en
+  étapes cochables : un plan de 8 tâches de 5 étapes chacune est un plan de 8 tâches, pas de 40.
+- Si le plan comporte **10 tâches ou moins**, l'agent passe directement à l'exécution inline
+  (`superpowers:executing-plans`). Au-delà de 10 tâches, il exécute en subagent-driven
+  development.
 - Assure toi que l'agent sache dans quelle branche git travailler.
 - Assure toi que l'agent reparte d'un ledger sdd propre.
 - L'agent ne doit avoir aucune questions à poser et doit pouvoir passer directement à l'exécution du plan.
