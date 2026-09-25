@@ -149,6 +149,10 @@ décisions.
 À chaque décision, au fil de la session. Un fichier mis à jour seulement à la fin
 est un fichier perdu si la session s'interrompt.
 
+### Versionning du fichier
+
+Si tu commit le fichier sur develop, n'oublie pas de push develop.
+
 ## Les labels
 
 Une issue traitée porte toujours exactement un des deux labels.
@@ -299,11 +303,16 @@ et rien d'autre. Pas de résumé des tickets, pas de rappel de ce qui a été fa
 ```
 ---
 ⚒️ Rapport d'analyse des tickets <DD/MM/YYYY> :
-- <nb> ticket(s) acceptés et en cours d'implémentation.
-- <nb> ticket(s) mis en attente de réponse.
-- <nb> ticket(s) toujours en attente de réponse.
+- <nb> ticket(s) acceptés et vont être implémentés.
+- <nb> ticket(s) en attente de réponse.
 ---
 ```
 
-Les deux premiers nombres sont ceux de la session en cours : les tickets passés en
-`accepted` d'un côté, ceux passés en `question` de l'autre. Le troisième est le nombre de tickets qui étaient en attente de question avant la session et qui le sont encore.
+Les nombres portent sur l'état du dépôt, pas sur la session : le premier compte
+les tickets ouverts qui portent le label `accepted`, le second ceux qui portent
+le label `question`.
+
+```bash
+gh issue list --state open --label accepted --limit 200 --json number -q 'length'
+gh issue list --state open --label question --limit 200 --json number -q 'length'
+```
