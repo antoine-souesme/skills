@@ -34,7 +34,7 @@ Analyse le plan que tu as écris lors de cette session et vérifie qu'il peut ê
 
 ## Finalisation
 
-- Quand tu as fini, tu me donneras le prompt que je pourrai copier/coller dans la nouvelle session. Entoure ton prompt de `---` que je puis le voir facilement.
+- Quand tu as fini, si je te le demande, tu me donnes le prompt de reprise pour une nouvelle session. Entoure le de `---` que je puisse le voir facilement.
 
 Modèle :
 ```
@@ -42,3 +42,5 @@ Modèle :
 <prompt>
 ---
 ```
+
+- Si je ne te demande pas le prompt, donne moi quand même le nombre de tâches du plan et donc le mode d'exécution choisi (inline ou subagent-driven development).
