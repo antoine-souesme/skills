@@ -236,6 +236,26 @@ La description de la PR contient toujours `Closes #<numéro de l'issue>`, sur sa
 propre ligne. C'est ce qui referme le ticket au moment de la fusion. Le dire
 dans le prompt donné à l'agent qui implémente, pour qu'il ne l'oublie pas.
 
+Exception : un ticket livré en plusieurs lots. Chaque lot a sa PR, qui porte
+`Refs #<n>` et pas `Closes`, sauf la PR du dernier lot, qui porte
+`Closes #<n>`. Sinon le ticket se referme dès le premier lot fusionné.
+
+## Les tickets livrés en plusieurs lots
+
+Un ticket trop lourd pour une seule implémentation se découpe en lots, chacun
+avec son plan et sa PR. Le découpage se décide avec le responsable produit au
+moment de présenter le design, et s'écrit dans `docs/suivi/GITHUB.md`.
+
+Une fois le lancement d'un lot effectif, **proposer le lot suivant** en une
+ligne, avant tout autre ticket : le numéro du ticket, le lot, ce qu'il contient
+et la façon dont il sera traité. Attendre la réponse.
+
+Sur un feu vert, le lot suivant se prépare tout de suite (spec, plan, handoff),
+sur une branche créée depuis celle du lot précédent, puisqu'il s'appuie dessus.
+Il ne se lance en revanche qu'une fois l'agent du lot précédent terminé : deux
+implémentations simultanées sur le même dépôt se marchent dessus. Le dire au
+responsable produit, et donner le prompt de reprise prêt à lancer.
+
 ## Les tickets qui ne méritent ni spec ni plan
 
 Certaines issues acceptées sont trop petites pour tout l'appareil : une
@@ -262,7 +282,9 @@ dessus.
 2. Lancer la première — `/spec-to-implementation`, ou `/launching-agent-below`
    si le ticket ne mérite ni spec ni plan.
 3. Une fois le lancement effectif, proposer le suivant en une ligne : son numéro,
-   son titre, et la façon dont il sera traité. Attendre la réponse.
+   son titre, et la façon dont il sera traité. Attendre la réponse. Si ce qui
+   vient d'être lancé est un lot et qu'il en reste d'autres, le suivant proposé
+   est le lot d'après (voir « Les tickets livrés en plusieurs lots »).
 4. Sur un feu vert, lancer le suivant et recommencer. Sur un refus ou un report,
    passer au ticket d'après, ou s'arrêter s'il n'en reste plus.
 5. Quand la liste est vide, écrire le rapport final.
@@ -284,6 +306,8 @@ silence.
 | PR ouverte sans `Closes #<n>` | L'issue reste ouverte après la fusion et repasse dans la liste à la session suivante. |
 | Commiter une spec ou un plan sur `develop` | Ces fichiers vivent sur la branche de l'issue, jamais sur la branche d'intégration. |
 | Lancer plusieurs tickets acceptés en même temps | Les implémentations se marchent dessus. Un ticket à la fois, et on demande avant de passer au suivant. |
+| Lancer un lot sans proposer le lot suivant | Le ticket reste à moitié livré et personne ne pense à la suite. On propose le lot d'après tout de suite. |
+| Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/launching-agent-below`. |
 | Commencer une session sans lire `docs/suivi/GITHUB.md` | On redécide ce qui l'a déjà été, et on casse des groupements retenus. |
