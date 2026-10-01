@@ -25,6 +25,7 @@ Orchestration d'une release en deux temps : préparation et ouverture d'une pull
 
 - Si aucune pull request ouverte `develop` → `main` n'existe : **phase 1**.
 - Si une pull request ouverte `develop` → `main` existe et que l'utilisateur donne son feu vert : **phase 2**.
+- Si l'utilisateur dit « automerge » ou « auto merge » après la phase 1 : **phase 2 en mode automerge** (voir étape 6).
 
 ```bash
 gh pr list --base main --head develop --state open
@@ -74,7 +75,7 @@ gh pr create --base main --head develop --title "Release v<version>" --body "<li
 
 - Le corps de la pull request reprend la liste des commits entre le dernier tag et `v<version>`, au format de l'étape 10.
 - Afficher le lien de la pull request à l'utilisateur.
-- **STOP.** Attendre le feu vert de l'utilisateur pour passer à la phase 2 (relecture, workflows GitHub de la pull request au vert).
+- **STOP.** Attendre le feu vert de l'utilisateur pour passer à la phase 2 (relecture, workflows GitHub de la pull request au vert), ou « automerge » / « auto merge » pour que l'agent surveille lui-même les workflows.
 
 ## Phase 2 - Mise en production (sur feu vert)
 
@@ -86,6 +87,17 @@ git push origin v<version>
 ```
 
 - Si un workflow est en échec ou en cours : **STOP**, le signaler.
+
+**Mode automerge** (l'utilisateur a dit « automerge » ou « auto merge ») : au lieu de s'arrêter sur des workflows en cours, l'agent les surveille lui-même jusqu'à leur fin.
+
+```bash
+gh pr checks <numero> --watch --fail-fast   # en arrière-plan, délai long (les e2e peuvent être longs)
+```
+
+- Si aucun workflow n'est encore apparu sur la pull request, attendre qu'ils apparaissent avant de lancer la surveillance : une liste vide n'est pas un succès.
+- Enchaîner sur la suite de la phase 2 **UNIQUEMENT si tous les workflows sont au vert** (succès ou volontairement ignorés).
+- Au moindre workflow en échec, annulé ou bloqué : **STOP**, le signaler avec le nom du workflow et le lien, ne rien pousser, ne rien fusionner, ne pas toucher à Supabase.
+- Le mode automerge ne dispense d'aucune autre règle : les arrêts des étapes 7 et 8 restent obligatoires.
 - Si le tag n'existe pas en local (nouvelle session, autre machine) : le recréer sur le commit de bump de develop (`git tag v<version> <commit de bump>`) avant de le pousser.
 - **Ne pas fusionner la pull request à cette étape.** On ne pousse que le tag.
 
@@ -170,7 +182,7 @@ git checkout develop && git merge main && git push origin develop
 - **Arbre git non propre** → STOP, demander à l'utilisateur.
 - **Version non fournie** → demander avant `npm version`.
 - **Pull request ouverte et pas de feu vert** → ne rien faire, attendre.
-- **Workflows de la pull request en échec ou en cours** → STOP, signaler.
+- **Workflows de la pull request en échec ou en cours** → STOP, signaler (en mode automerge : attendre la fin s'ils sont en cours, STOP s'ils échouent).
 - **Conflit de merge** → STOP, signaler.
 - **`db push` échoue / dérive `db diff --linked`** → STOP, ne pas fusionner la pull request.
 - **Projet distant non confirmé comme la prod** → ne pas `db push`.
