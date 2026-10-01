@@ -6,20 +6,31 @@ disable-model-invocation: true
 
 # Mise en production
 
-Orchestration complète d'une release : git (develop → main), versioning, déploiement Supabase distant, puis réintégration dans develop. Ce skill remplace et englobe l'ancienne procédure de déploiement Supabase seul.
+Orchestration d'une release en deux temps : préparation et ouverture d'une pull request `develop` → `main`, puis, sur feu vert de l'utilisateur, déploiement Supabase distant, fusion de la pull request et réintégration dans develop.
 
 ## Principe central
 
-**On ne pousse jamais `main` tant que la mise en prod Supabase n'a pas réussi.** L'ordre des étapes est une garantie : le code public (`main` poussé) ne doit jamais être en avance sur la base de prod.
+**On ne fusionne jamais la pull request dans `main` tant que la mise en prod Supabase n'a pas réussi.** L'ordre des étapes est une garantie : le code public (`main`) ne doit jamais être en avance sur la base de prod.
 
 ## Règles absolues
 
 - Ne jamais demander d'autorisation pour les opérations git (conformément aux conventions du projet).
-- Suivre l'ordre des étapes **exactement**. Ne pas pousser `main` avant l'étape 6.
+- Suivre l'ordre des étapes **exactement**. Ne pas fusionner la pull request avant l'étape 8.
+- **Toujours fusionner avec un commit de fusion (`gh pr merge --merge`). Jamais `--squash` ni `--rebase` : l'historique de `develop` doit être conservé tel quel dans `main`.**
+- Ne jamais pousser directement sur `main` : tout passe par la pull request.
 - La source de vérité du schéma reste `supabase/migrations/*.sql`. Jamais le dashboard.
 - Si une étape échoue, s'arrêter, analyser, et ne pas enchaîner la suivante.
 
-## Procédure (ordre impératif)
+## Détecter la phase
+
+- Si aucune pull request ouverte `develop` → `main` n'existe : **phase 1**.
+- Si une pull request ouverte `develop` → `main` existe et que l'utilisateur donne son feu vert : **phase 2**.
+
+```bash
+gh pr list --base main --head develop --state open
+```
+
+## Phase 1 - Préparer la release et ouvrir la pull request
 
 ### Étape 1 - Vérifier l'état git
 
@@ -30,17 +41,14 @@ git status --porcelain
 - Si l'arbre de travail **n'est pas propre** (modifications non commitées, fichiers non suivis pertinents) : **STOP**, demander à l'utilisateur quoi faire (commit, stash, ignorer). Ne rien faire d'autre avant sa réponse.
 - Si propre : continuer.
 
-### Étape 2 - Merge develop dans main (sans push)
+### Étape 2 - Mettre develop à jour
 
 ```bash
-git checkout main
-git merge develop
+git checkout develop
+git pull origin develop
 ```
 
-- **Ne pas pousser `main`.**
-- En cas de conflit : s'arrêter et le signaler.
-
-### Étape 3 - Bump de version sur main
+### Étape 3 - Bump de version sur develop
 
 La version est fournie par l'utilisateur quand il invoque ce skill. **Si elle n'a pas été donnée, la demander avant de continuer** (utiliser l'outil de question).
 
@@ -48,18 +56,40 @@ La version est fournie par l'utilisateur quand il invoque ce skill. **Si elle n'
 npm version <version>
 ```
 
-- `npm version` crée le commit de bump **et** le tag `v<version>` sur `main`.
+- `npm version` crée le commit de bump **et** le tag `v<version>` en local.
 - `<version>` peut être un numéro explicite (`0.2.0`) ou un incrément (`patch`/`minor`/`major`).
+- **Le tag n'est pas poussé à cette étape.**
 
-### Étape 4 - Pousser le tag uniquement
+### Étape 4 - Pousser develop (sans le tag)
 
 ```bash
+git push --no-follow-tags origin develop
+```
+
+### Étape 5 - Ouvrir la pull request develop → main
+
+```bash
+gh pr create --base main --head develop --title "Release v<version>" --body "<liste des commits de la release>"
+```
+
+- Le corps de la pull request reprend la liste des commits entre le dernier tag et `v<version>`, au format de l'étape 10.
+- Afficher le lien de la pull request à l'utilisateur.
+- **STOP.** Attendre le feu vert de l'utilisateur pour passer à la phase 2 (relecture, workflows GitHub de la pull request au vert).
+
+## Phase 2 - Mise en production (sur feu vert)
+
+### Étape 6 - Vérifier la pull request et pousser le tag
+
+```bash
+gh pr checks <numero>           # les workflows doivent être au vert
 git push origin v<version>
 ```
 
-- **`main` n'est toujours pas poussé.** On ne pousse que le tag créé à l'étape 3.
+- Si un workflow est en échec ou en cours : **STOP**, le signaler.
+- Si le tag n'existe pas en local (nouvelle session, autre machine) : le recréer sur le commit de bump de develop (`git tag v<version> <commit de bump>`) avant de le pousser.
+- **Ne pas fusionner la pull request à cette étape.** On ne pousse que le tag.
 
-### Étape 5 - Mettre la base Supabase en prod
+### Étape 7 - Mettre la base Supabase en prod
 
 Appliquer sur le projet distant de production les migrations déjà créées et validées en local.
 
@@ -73,27 +103,33 @@ npm run supabase:dump                              # si le schéma a changé sur
 ```
 
 - Toujours vérifier que `<production-ref>` correspond bien au projet de production avant `db push`.
-- Si `db push` échoue ou que `db diff --linked` remonte une dérive : **STOP**, traiter avant de continuer. Ne pas passer à l'étape 6.
+- Si `db push` échoue ou que `db diff --linked` remonte une dérive : **STOP**, traiter avant de continuer. Ne pas passer à l'étape 8.
 - S'il n'y a aucune migration à appliquer, `db push` ne fait rien : c'est normal, continuer.
 
-### Étape 6 - Pousser main
+### Étape 8 - Fusionner la pull request (commit de fusion)
 
-Seulement si l'étape 5 s'est terminée sans erreur :
+Seulement si l'étape 7 s'est terminée sans erreur :
 
 ```bash
-git push origin main
+gh pr merge <numero> --merge
 ```
 
-### Étape 7 - Réintégrer main dans develop
+- **Jamais `--squash` ni `--rebase`.**
+- Ne pas utiliser `--delete-branch` : `develop` doit rester.
+
+### Étape 9 - Réintégrer main dans develop
 
 ```bash
+git checkout main
+git pull origin main
 git checkout develop
 git merge main
+git push origin develop
 ```
 
 - Terminer sur la branche `develop`.
 
-### Étape 8 - Listing des commits de la release
+### Étape 10 - Listing des commits de la release
 
 À la toute fin, affiche moi la liste des commits de la release (entre le dernier tag et le nouveau tag) pour que je puisse rédiger le changelog.
 
@@ -109,23 +145,33 @@ Le format doit être le suivant :
 ## Résumé opératoire
 
 ```bash
+# Phase 1
 git status --porcelain                              # 1. doit être propre
-git checkout main && git merge develop              # 2. pas de push
-npm version <version>                               # 3. commit + tag v<version>
-git push origin v<version>                          # 4. tag seul
-# 5. Supabase prod :
+git checkout develop && git pull origin develop     # 2.
+npm version <version>                               # 3. commit + tag v<version> en local
+git push --no-follow-tags origin develop            # 4. sans le tag
+gh pr create --base main --head develop ...         # 5. puis STOP, attendre le feu vert
+
+# Phase 2 (sur feu vert)
+gh pr checks <numero>                               # 6. workflows au vert
+git push origin v<version>                          #    tag seul
+# 7. Supabase prod :
 npx supabase link --project-ref <production-ref>
 npx supabase db push
 npx supabase db diff --linked
 npm run supabase:dump                               # si nécessaire
-git push origin main                                # 6. uniquement si étape 5 OK
-git checkout develop && git merge main              # 7. fin sur develop
+gh pr merge <numero> --merge                        # 8. uniquement si étape 7 OK, jamais squash
+git checkout main && git pull origin main           # 9.
+git checkout develop && git merge main && git push origin develop
 ```
 
 ## Règles de décision
 
 - **Arbre git non propre** → STOP, demander à l'utilisateur.
 - **Version non fournie** → demander avant `npm version`.
+- **Pull request ouverte et pas de feu vert** → ne rien faire, attendre.
+- **Workflows de la pull request en échec ou en cours** → STOP, signaler.
 - **Conflit de merge** → STOP, signaler.
-- **`db push` échoue / dérive `db diff --linked`** → STOP, ne pas pousser `main`.
+- **`db push` échoue / dérive `db diff --linked`** → STOP, ne pas fusionner la pull request.
 - **Projet distant non confirmé comme la prod** → ne pas `db push`.
+- **Fusion refusée par GitHub (mode de fusion non autorisé)** → STOP, signaler, ne jamais basculer sur `--squash` ou `--rebase`.
