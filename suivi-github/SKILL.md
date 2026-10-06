@@ -268,6 +268,23 @@ Dans ce cas, pas de `/spec-to-implementation`. Poser le label `accepted`, puis
 lancer directement le travail avec `/launching-agent-below`, en décrivant dans
 le prompt le numéro de l'issue, ce qu'il faut changer et où.
 
+Sauter la spec ne fait pas sauter les garanties de `/spec-to-plan` et de
+`/handoff` : c'est le prompt qui doit les porter, puisqu'aucun plan ne le fera.
+Le prompt contient donc toujours :
+
+- **la branche** à créer depuis `develop` à jour, et dans laquelle travailler ;
+- **une vérification visuelle** avec claude-in-chrome de chaque élément d'interface
+  ajouté ou modifié, en décrivant ce qu'il faut voir à l'écran. L'agent est
+  autonome : il trouve les identifiants du compte de test dans `.env.local` (et
+  les y ajoute s'ils manquent), il ne demande jamais de se connecter à sa place ;
+- les vérifications du projet (lint, build) prévues par son `CLAUDE.md` ;
+- la consigne de noter dans `docs/suivi/DETTE.md` une décision mise de côté, et
+  seulement celle-là ;
+- la PR vers `develop` avec `Closes #<n>` sur sa propre ligne ;
+- le compte rendu final : ne pas raconter ce qui a été fait, lister seulement ce
+  que le responsable produit doit faire à la main (hors vérifications, git,
+  migrations, relecture de PR et réglages dans l'application).
+
 Au moindre doute, repasser par la spec : une petite issue mal jugée coûte plus
 cher qu'un plan inutile.
 
@@ -310,6 +327,7 @@ silence.
 | Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/launching-agent-below`. |
+| Lancer un petit ticket avec un prompt sans vérification visuelle | Sans plan, rien d'autre ne la demande : l'agent s'arrête au lint et au build. Le prompt reprend toutes les garanties du handoff. |
 | Commencer une session sans lire `docs/suivi/GITHUB.md` | On redécide ce qui l'a déjà été, et on casse des groupements retenus. |
 | Écrire dans le fichier de suivi ce qui a été livré | Ce n'est pas un historique. `git log` et `gh` le disent mieux. Un ticket livré en disparaît. |
 | Ne mettre le fichier de suivi à jour qu'en fin de session | Une session interrompue perd alors toutes ses décisions. |
