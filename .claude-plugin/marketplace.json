@@ -1,0 +1,17 @@
+{
+  "name": "antoine",
+  "owner": {
+    "name": "Antoine Souesme",
+    "email": "antoine@gkfa.fr"
+  },
+  "metadata": {
+    "description": "Skills d'Antoine Souesme pour les ERP GKFA"
+  },
+  "plugins": [
+    {
+      "name": "antoine",
+      "source": "./",
+      "description": "Skills d'Antoine Souesme pour les ERP GKFA"
+    }
+  ]
+}

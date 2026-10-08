@@ -16,7 +16,7 @@ skills/launching-agent-below/launch-below.sh [--name NOM] [--cwd CHEMIN] "le pro
 skills/launching-agent-below/launch-below.sh [--name NOM] [--cwd CHEMIN] --prompt-file CHEMIN
 ```
 
-Le chemin absolu du script est `~/.claude/skills/launching-agent-below/launch-below.sh`.
+Le chemin absolu du script est `${CLAUDE_PLUGIN_ROOT}/skills/launching-agent-below/launch-below.sh`.
 `--name` (défaut `below`) est le nom Herdr de l'agent, `--cwd` (défaut `$PWD`) le dossier
 de travail utilisé seulement à la création de la pane. `--prompt-file` lit le prompt dans
 un fichier : à préférer dès que le prompt est long ou contient des guillemets, des

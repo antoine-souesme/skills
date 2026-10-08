@@ -17,7 +17,7 @@ Chaque issue tombe dans une seule des trois catégories.
 | Question fonctionnelle | Le comportement attendu est ambigu, ou plusieurs lectures mènent à des produits différents | Commentaire sur le ticket + label `question`. Jamais de question au responsable produit. |
 | Question technique | Le comportement est clair, mais la façon de le modéliser ou de le brancher ne l'est pas | Question au responsable produit avec l'outil de question, avant de planifier |
 | Acceptée | Le besoin est clair et le code à écrire l'est aussi | Label `accepted`, plan d'implémentation, puis exécution |
-| Acceptée et petite | Le besoin est clair et la modification tient en quelques fichiers évidents | Label `accepted`, pas de spec ni de plan : traitement direct avec `/launching-agent-below` |
+| Acceptée et petite | Le besoin est clair et la modification tient en quelques fichiers évidents | Label `accepted`, pas de spec ni de plan : traitement direct avec `/antoine:launching-agent-below` |
 
 Une issue peut d'abord poser une question technique, puis devenir acceptée une
 fois la réponse obtenue. C'est le cas normal.
@@ -106,7 +106,7 @@ deux : une ligne `Closes #<n>` par ticket.
 5. **Traiter** chaque issue selon sa catégorie, en commençant par les questions
    techniques : leur réponse change ce qui devient acceptable.
 
-6. **Planifier** les issues acceptées avec `/spec-to-implementation`.
+6. **Planifier** les issues acceptées avec `/antoine:spec-to-implementation`.
 
 7. **Mettre à jour `docs/suivi/GITHUB.md`** dès qu'une décision est prise, pas en
    fin de session : un groupement retenu, un ordre arrêté, un périmètre réduit,
@@ -221,14 +221,14 @@ pour chacune ce qu'elle implique pour la suite.
 
 Présenter le design en quelques paragraphes dans le fil — base, backend, front,
 plus ce qui est décidé par défaut — et attendre le feu vert. Poser le label
-`accepted` sur l'issue, puis enchaîner sur `/spec-to-implementation`.
+`accepted` sur l'issue, puis enchaîner sur `/antoine:spec-to-implementation`.
 
 ## Où vivent les specs et les plans
 
 Une spec ou un plan ne se commite jamais sur `develop`, ni sur `main`. Il part
 sur la branche de l'issue, créée avant d'écrire quoi que ce soit. Si la branche
 n'existe pas encore, la créer depuis `develop` et s'y placer avant de lancer
-`/spec-to-implementation`.
+`/antoine:spec-to-implementation`.
 
 ## La pull request
 
@@ -267,12 +267,12 @@ recopier. Signes : la modification tient en quelques fichiers qu'on sait déjà
 nommer, aucune décision de modélisation, rien à trancher avec le responsable
 produit.
 
-Dans ce cas, pas de `/spec-to-implementation`. Poser le label `accepted`, puis
-lancer directement le travail avec `/launching-agent-below`, en décrivant dans
+Dans ce cas, pas de `/antoine:spec-to-implementation`. Poser le label `accepted`, puis
+lancer directement le travail avec `/antoine:launching-agent-below`, en décrivant dans
 le prompt le numéro de l'issue, ce qu'il faut changer et où.
 
-Sauter la spec ne fait pas sauter les garanties de `/spec-to-plan` et de
-`/handoff` : c'est le prompt qui doit les porter, puisqu'aucun plan ne le fera.
+Sauter la spec ne fait pas sauter les garanties de `/antoine:spec-to-plan` et de
+`/antoine:handoff` : c'est le prompt qui doit les porter, puisqu'aucun plan ne le fera.
 Le prompt contient donc toujours :
 
 - **la branche** à créer depuis `develop` à jour, et dans laquelle travailler.
@@ -301,7 +301,7 @@ dessus.
 
 1. Trier les issues acceptées dans l'ordre où elles doivent être faites : celles
    dont d'autres dépendent d'abord.
-2. Lancer la première — `/spec-to-implementation`, ou `/launching-agent-below`
+2. Lancer la première — `/antoine:spec-to-implementation`, ou `/antoine:launching-agent-below`
    si le ticket ne mérite ni spec ni plan.
 3. Une fois le lancement effectif, proposer le suivant en une ligne : son numéro,
    son titre, et la façon dont il sera traité. Attendre la réponse. Si ce qui
@@ -316,7 +316,7 @@ silence.
 
 ## Pendant qu'un agent travaille
 
-L'agent lancé avec `/launching-agent-below` ou `/spec-to-implementation`
+L'agent lancé avec `/antoine:launching-agent-below` ou `/antoine:spec-to-implementation`
 travaille **dans le même dossier de travail** que la session qui l'a lancé.
 Tant qu'il tourne, ce dossier lui appartient.
 
@@ -354,7 +354,7 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Lancer un lot sans proposer le lot suivant | Le ticket reste à moitié livré et personne ne pense à la suite. On propose le lot d'après tout de suite. |
 | Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
-| Écrire une spec pour un changement de libellé | Traitement direct avec `/launching-agent-below`. |
+| Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent-below`. |
 | Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
 | Créer la branche d'un petit ticket avant de lancer l'agent | C'est l'agent qui la crée, dans son prompt. La session qui lance ne touche pas à git. |
 | Lancer un petit ticket avec un prompt sans vérification visuelle | Sans plan, rien d'autre ne la demande : l'agent s'arrête au lint et au build. Le prompt reprend toutes les garanties du handoff. |
