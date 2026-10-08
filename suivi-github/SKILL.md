@@ -252,6 +252,9 @@ et la façon dont il sera traité. Attendre la réponse.
 
 Sur un feu vert, le lot suivant se prépare tout de suite (spec, plan, handoff),
 sur une branche créée depuis celle du lot précédent, puisqu'il s'appuie dessus.
+Si l'agent du lot précédent tourne encore, cette préparation se fait dans un
+worktree séparé, jamais dans le dossier de travail (voir « Pendant qu'un agent
+travaille »).
 Il ne se lance en revanche qu'une fois l'agent du lot précédent terminé : deux
 implémentations simultanées sur le même dépôt se marchent dessus. Le dire au
 responsable produit, et donner le prompt de reprise prêt à lancer.
@@ -272,7 +275,9 @@ Sauter la spec ne fait pas sauter les garanties de `/spec-to-plan` et de
 `/handoff` : c'est le prompt qui doit les porter, puisqu'aucun plan ne le fera.
 Le prompt contient donc toujours :
 
-- **la branche** à créer depuis `develop` à jour, et dans laquelle travailler ;
+- **la branche** à créer depuis `develop` à jour, et dans laquelle travailler.
+  C'est l'agent qui la crée, pas la session qui le lance (voir « Pendant qu'un
+  agent travaille ») ;
 - **une vérification visuelle** avec claude-in-chrome de chaque élément d'interface
   ajouté ou modifié, en décrivant ce qu'il faut voir à l'écran. L'agent est
   autonome : il trouve les identifiants du compte de test dans `.env.local` (et
@@ -309,6 +314,29 @@ dessus.
 Ne jamais lancer le ticket suivant sans avoir demandé. Ne jamais enchaîner en
 silence.
 
+## Pendant qu'un agent travaille
+
+L'agent lancé avec `/launching-agent-below` ou `/spec-to-implementation`
+travaille **dans le même dossier de travail** que la session qui l'a lancé.
+Tant qu'il tourne, ce dossier lui appartient.
+
+- **Ne jamais changer de branche** dans le dossier de travail : pas de
+  `git checkout`, `git switch`, `git pull`, `git stash`, ni de commit. L'agent
+  verrait ses fichiers changer sous ses pieds.
+- Pour un petit ticket, **la branche est créée par l'agent lui-même**, au début
+  de son travail : la session qui lance ne la crée pas.
+- Mettre à jour `docs/suivi/GITHUB.md` sur `develop` pendant ce temps se fait
+  dans un worktree séparé, supprimé juste après :
+
+  ```bash
+  git worktree add --detach <scratchpad>/wt-develop origin/develop
+  # modifier, commiter, puis :
+  git -C <scratchpad>/wt-develop push origin HEAD:develop
+  git worktree remove <scratchpad>/wt-develop
+  ```
+
+  Si la mise à jour peut attendre, la faire une fois l'agent terminé.
+
 ## Pièges
 
 | Piège | Réalité |
@@ -327,6 +355,8 @@ silence.
 | Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/launching-agent-below`. |
+| Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
+| Créer la branche d'un petit ticket avant de lancer l'agent | C'est l'agent qui la crée, dans son prompt. La session qui lance ne touche pas à git. |
 | Lancer un petit ticket avec un prompt sans vérification visuelle | Sans plan, rien d'autre ne la demande : l'agent s'arrête au lint et au build. Le prompt reprend toutes les garanties du handoff. |
 | Commencer une session sans lire `docs/suivi/GITHUB.md` | On redécide ce qui l'a déjà été, et on casse des groupements retenus. |
 | Écrire dans le fichier de suivi ce qui a été livré | Ce n'est pas un historique. `git log` et `gh` le disent mieux. Un ticket livré en disparaît. |
