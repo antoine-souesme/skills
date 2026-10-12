@@ -366,6 +366,31 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Traiter deux tickets d'un même socle l'un après l'autre sans regarder | Le second défait des choix du premier, et on paie deux fois le même travail. |
 | Grouper sans l'écrire dans le fichier de suivi | La session suivante n'a aucun moyen de le redeviner. |
 
+## Le message des tickets bloqués
+
+Quand le responsable produit demande un message sur ce qui bloque (par exemple
+pour l'envoyer sur Discord), il prend toujours cette forme, et rien d'autre :
+aucun détail sur la raison du blocage, pas de prestataire, pas de dépendance.
+
+```
+** 🚨 Rapport de suivi : <nb> tickets bloqués**
+
+#<n> <titre du ticket>
+#<n> <titre du ticket>
+...
+
+<tag de la personne si demandé> Il faudrait faire une session avec le correspondant pour les débloquer.
+```
+
+Les tickets bloqués sont les tickets ouverts qui portent le label `question`,
+rangés par numéro croissant, avec leur titre tel qu'il est sur GitHub.
+
+```bash
+gh issue list --state open --label question --limit 200 --json number,title -q 'sort_by(.number)[] | "#\(.number) \(.title)"'
+```
+
+Le message n'est pas envoyé tant que le responsable produit ne l'a pas demandé.
+
 ## Le rapport final
 
 Tout à la fin, une fois le dernier ticket lancé ou la liste épuisée, vérifier que
