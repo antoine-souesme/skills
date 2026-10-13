@@ -40,6 +40,7 @@ Pensez à augmenter `version` dans `.claude-plugin/plugin.json` à chaque public
 | `handle-dept` | Traite les points de dette mis de côté pendant l'exécution d'un plan. |
 | `handoff` | Vérifie qu'un plan peut être repris par un autre agent dans une nouvelle session. |
 | `launching-agent-below` | Lance un agent Claude Code dans la pane Herdr du dessous (nécessite `HERDR_ENV=1`). |
+| `loop-spec-to-implementation` | Enchaîne plusieurs specs avec `spec-to-implementation`, en attendant la fusion de chacune. |
 | `prepare-for-compact` | Sauvegarde l'état de la session avant une compaction. |
 | `spec-to-implementation` | Enchaîne plan, handoff et lancement de l'agent d'exécution à partir d'une spec. |
 | `spec-to-plan` | Rédige un plan d'implémentation à partir d'une spec. |
