@@ -259,7 +259,9 @@ avant le lancement) :
 6. **Prévenir la session qui l'a lancé**, avec l'outil `SendMessage`, dès que la
    PR est fusionnée ou dès qu'il s'arrête sans fusionner : « #<n> fusionnée »,
    ou « #<n> non fusionnée : <raison> ». Le prompt lui donne le nom de cette
-   session, lu avec `ListAgents` (la ligne « This session is <nom> »).
+   session, lu avec `ListAgents` (la ligne « This session is <nom> [<ref>] »),
+   **toujours avec sa référence entre crochets** : un agent lancé dans le même
+   dossier peut recevoir le même nom, et le nom seul deviendrait ambigu.
 
 La fusion d'un lot qui n'est pas le dernier suit la même règle : sa PR porte
 `Refs #<n>`, le ticket reste ouvert.
@@ -440,6 +442,7 @@ Tant qu'il tourne, ce dossier lui appartient.
 | En mode automatique, lancer la suite alors que l'agent s'est arrêté sans fusionner | Le ticket suivant part sur un `develop` qui n'a pas le précédent. On sort du mode et on prévient. |
 | En mode automatique, trancher seul une question technique ou un design pour ne pas s'arrêter | Le mode enchaîne les lancements, il ne prend aucune décision. |
 | Attendre la fusion avec un script de surveillance ou `sleep` | L'agent prévient par `SendMessage`. Un réveil long sert seulement de filet. |
+| Donner à l'agent le nom de la session sans sa référence `[ref]` | Les sessions du même dossier peuvent porter le même nom. Nom et référence, toujours. |
 | Lancer un agent sans lui donner le nom de la session à prévenir | Il fusionne, et personne ne le sait. Le nom vient de `ListAgents`. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent-below`. |
 | Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
