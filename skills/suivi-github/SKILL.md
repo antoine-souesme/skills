@@ -256,6 +256,10 @@ avant le lancement) :
    et le dire dans le compte rendu final, en une ligne, avec le lien de la PR.
 5. Ne jamais fusionner une PR dont un contrôle est rouge ou encore en cours, et
    ne jamais contourner un contrôle (pas de `--admin`, pas de test désactivé).
+6. **Prévenir la session qui l'a lancé**, avec l'outil `SendMessage`, dès que la
+   PR est fusionnée ou dès qu'il s'arrête sans fusionner : « #<n> fusionnée »,
+   ou « #<n> non fusionnée : <raison> ». Le prompt lui donne le nom de cette
+   session, lu avec `ListAgents` (la ligne « This session is <nom> »).
 
 La fusion d'un lot qui n'est pas le dernier suit la même règle : sa PR porte
 `Refs #<n>`, le ticket reste ouvert.
@@ -310,8 +314,8 @@ Le prompt contient donc toujours :
 - la consigne de noter dans `docs/suivi/DETTE.md` une décision mise de côté, et
   seulement celle-là ;
 - la PR vers `develop` avec `Closes #<n>` sur sa propre ligne ;
-- la surveillance des contrôles de la PR et sa fusion quand ils sont au vert
-  (voir « La fusion par l'agent ») ;
+- la surveillance des contrôles de la PR, sa fusion quand ils sont au vert, et
+  le message à la session qui l'a lancé (voir « La fusion par l'agent ») ;
 - le compte rendu final : ne pas raconter ce qui a été fait, lister seulement ce
   que le responsable produit doit faire à la main (hors vérifications, git,
   migrations, relecture de PR et réglages dans l'application).
@@ -359,24 +363,15 @@ que le responsable produit dise de l'arrêter.
 
 ### Attendre la fusion
 
-Juste après chaque lancement, surveiller la PR de la branche de l'agent avec
-l'outil `Monitor` (en arrière-plan, sans boucle d'attente dans la conversation).
-La session connaît la branche : c'est elle qui l'a écrite dans le prompt.
+Pas de script de surveillance : **c'est l'agent qui prévient**, par la messagerie
+entre sessions (`SendMessage`), quand sa PR est fusionnée ou quand il s'arrête
+sans fusionner (voir « La fusion par l'agent »). Son message arrive tout seul
+dans la conversation ; la session ne fait rien en attendant.
 
-```bash
-until [ "$(gh pr list --head <branche> --state merged --json number -q length)" = "1" ]; do
-  if [ "$(gh pr list --head <branche> --state closed --json number -q length)" = "1" ] \
-     && [ "$(gh pr list --head <branche> --state merged --json number -q length)" = "0" ]; then
-    echo "PR fermée sans fusion"; exit 1
-  fi
-  sleep 60
-done
-echo "PR fusionnée"
-```
-
-Comme filet, programmer aussi un réveil long (`ScheduleWakeup`, vingt à trente
-minutes) : au réveil, regarder où en est l'agent avec
-`herdr agent read <nom> --source recent-unwrapped --lines 120`.
+Comme filet, programmer seulement un réveil long (`ScheduleWakeup`, vingt à
+trente minutes) : au réveil, regarder où en est l'agent avec
+`herdr agent read <nom> --source recent-unwrapped --lines 120`, et l'état de sa
+PR avec `gh pr list --head <branche> --state all`.
 
 ### À la fusion
 
@@ -444,7 +439,8 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Lancer un agent sans lui dire de surveiller les contrôles et de fusionner | La PR reste ouverte, le mode automatique attend une fusion qui ne viendra jamais. |
 | En mode automatique, lancer la suite alors que l'agent s'est arrêté sans fusionner | Le ticket suivant part sur un `develop` qui n'a pas le précédent. On sort du mode et on prévient. |
 | En mode automatique, trancher seul une question technique ou un design pour ne pas s'arrêter | Le mode enchaîne les lancements, il ne prend aucune décision. |
-| Attendre la fusion avec `sleep` dans la conversation | `Monitor` en arrière-plan, avec un réveil long comme filet. |
+| Attendre la fusion avec un script de surveillance ou `sleep` | L'agent prévient par `SendMessage`. Un réveil long sert seulement de filet. |
+| Lancer un agent sans lui donner le nom de la session à prévenir | Il fusionne, et personne ne le sait. Le nom vient de `ListAgents`. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent-below`. |
 | Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
 | Créer la branche d'un petit ticket avant de lancer l'agent | C'est l'agent qui la crée, dans son prompt. La session qui lance ne touche pas à git. |
