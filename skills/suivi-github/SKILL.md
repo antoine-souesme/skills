@@ -236,6 +236,28 @@ La description de la PR contient toujours `Closes #<numéro de l'issue>`, sur sa
 propre ligne. C'est ce qui referme le ticket au moment de la fusion. Le dire
 dans le prompt donné à l'agent qui implémente, pour qu'il ne l'oublie pas.
 
+### La fusion par l'agent
+
+C'est **l'agent qui implémente qui fusionne sa PR dans `develop`**, une fois les
+contrôles de la CI au vert. Personne ne fusionne à sa place. Le prompt qu'on lui
+donne le dit toujours, qu'il passe par `/antoine:launching-agent-below` ou par
+`/antoine:spec-to-implementation` (dans ce cas, l'ajouter au prompt de handoff
+avant le lancement) :
+
+1. Après l'ouverture de la PR, surveiller ses contrôles jusqu'au bout :
+   `gh pr checks <n> --watch --interval 30`.
+2. **Tout est vert** : fusionner avec `gh pr merge <n> --squash --delete-branch`.
+3. **Un contrôle échoue** : lire le journal de l'échec (`gh run view <id> --log-failed`),
+   corriger sur la branche, pousser, et surveiller à nouveau.
+4. **Trois échecs de suite, ou un échec qui ne vient pas de son travail**
+   (une panne de la CI, un test sans rapport avec le ticket) : ne pas fusionner,
+   et le dire dans le compte rendu final, en une ligne, avec le lien de la PR.
+5. Ne jamais fusionner une PR dont un contrôle est rouge ou encore en cours, et
+   ne jamais contourner un contrôle (pas de `--admin`, pas de test désactivé).
+
+La fusion d'un lot qui n'est pas le dernier suit la même règle : sa PR porte
+`Refs #<n>`, le ticket reste ouvert.
+
 Exception : un ticket livré en plusieurs lots. Chaque lot a sa PR, qui porte
 `Refs #<n>` et pas `Closes`, sauf la PR du dernier lot, qui porte
 `Closes #<n>`. Sinon le ticket se referme dès le premier lot fusionné.
@@ -286,6 +308,8 @@ Le prompt contient donc toujours :
 - la consigne de noter dans `docs/suivi/DETTE.md` une décision mise de côté, et
   seulement celle-là ;
 - la PR vers `develop` avec `Closes #<n>` sur sa propre ligne ;
+- la surveillance des contrôles de la PR et sa fusion quand ils sont au vert
+  (voir « La fusion par l'agent ») ;
 - le compte rendu final : ne pas raconter ce qui a été fait, lister seulement ce
   que le responsable produit doit faire à la main (hors vérifications, git,
   migrations, relecture de PR et réglages dans l'application).
@@ -312,7 +336,67 @@ dessus.
 5. Quand la liste est vide, écrire le rapport final.
 
 Ne jamais lancer le ticket suivant sans avoir demandé. Ne jamais enchaîner en
-silence.
+silence. Seule exception : le mode automatique.
+
+## Le mode automatique
+
+Quand le responsable produit dit « mode automatique », la session enchaîne les
+tickets sans redemander : elle attend que la branche de l'agent soit fusionnée
+dans `develop`, puis lance le ticket suivant de l'ordre retenu dans
+`docs/suivi/GITHUB.md`. Le mode dure jusqu'à la fin de la liste, ou jusqu'à ce
+que le responsable produit dise de l'arrêter.
+
+### Ce qu'il change, ce qu'il ne change pas
+
+- Il remplace seulement l'étape « proposer le suivant et attendre la réponse ».
+- **Il ne tranche rien à la place du responsable produit.** Une question
+  technique, un design à présenter avant une spec, un découpage en lots : la
+  session s'arrête, pose la question, et reprend l'enchaînement sur la réponse.
+- L'ordre est celui du fichier de suivi. Un ticket qui n'y figure pas, ou qui
+  n'a pas le label `accepted`, ne part pas.
+
+### Attendre la fusion
+
+Juste après chaque lancement, surveiller la PR de la branche de l'agent avec
+l'outil `Monitor` (en arrière-plan, sans boucle d'attente dans la conversation).
+La session connaît la branche : c'est elle qui l'a écrite dans le prompt.
+
+```bash
+until [ "$(gh pr list --head <branche> --state merged --json number -q length)" = "1" ]; do
+  if [ "$(gh pr list --head <branche> --state closed --json number -q length)" = "1" ] \
+     && [ "$(gh pr list --head <branche> --state merged --json number -q length)" = "0" ]; then
+    echo "PR fermée sans fusion"; exit 1
+  fi
+  sleep 60
+done
+echo "PR fusionnée"
+```
+
+Comme filet, programmer aussi un réveil long (`ScheduleWakeup`, vingt à trente
+minutes) : au réveil, regarder où en est l'agent avec
+`herdr agent read <nom> --source recent-unwrapped --lines 120`.
+
+### À la fusion
+
+1. `git checkout develop && git pull` dans le dossier de travail : l'agent a fini,
+   le dossier redevient celui de la session.
+2. Retirer le ticket livré de `docs/suivi/GITHUB.md`, commiter, pousser `develop`.
+3. Lancer le ticket suivant, annoncé en une ligne (numéro, titre, façon dont il
+   est traité), et recommencer la surveillance.
+
+### Quand sortir du mode automatique
+
+La session s'arrête et prévient en une ligne, sans lancer la suite, si :
+
+- l'agent s'arrête sans avoir fusionné (contrôles rouges après trois essais,
+  question posée, blocage) ;
+- la PR est fermée sans être fusionnée ;
+- l'agent liste dans son compte rendu une action à faire à la main par le
+  responsable produit avant que la suite puisse marcher (une variable
+  d'environnement, un compte à créer) ;
+- le ticket suivant demande une décision du responsable produit (voir plus haut).
+
+Quand la liste est vide, écrire le rapport final.
 
 ## Pendant qu'un agent travaille
 
@@ -353,7 +437,11 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Lancer plusieurs tickets acceptés en même temps | Les implémentations se marchent dessus. Un ticket à la fois, et on demande avant de passer au suivant. |
 | Lancer un lot sans proposer le lot suivant | Le ticket reste à moitié livré et personne ne pense à la suite. On propose le lot d'après tout de suite. |
 | Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
-| Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. |
+| Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. Seul le mode automatique, demandé par lui, l'autorise. |
+| Lancer un agent sans lui dire de surveiller les contrôles et de fusionner | La PR reste ouverte, le mode automatique attend une fusion qui ne viendra jamais. |
+| En mode automatique, lancer la suite alors que l'agent s'est arrêté sans fusionner | Le ticket suivant part sur un `develop` qui n'a pas le précédent. On sort du mode et on prévient. |
+| En mode automatique, trancher seul une question technique ou un design pour ne pas s'arrêter | Le mode enchaîne les lancements, il ne prend aucune décision. |
+| Attendre la fusion avec `sleep` dans la conversation | `Monitor` en arrière-plan, avec un réveil long comme filet. |
 | Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent-below`. |
 | Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
 | Créer la branche d'un petit ticket avant de lancer l'agent | C'est l'agent qui la crée, dans son prompt. La session qui lance ne touche pas à git. |
