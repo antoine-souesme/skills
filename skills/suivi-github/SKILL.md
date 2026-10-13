@@ -246,7 +246,9 @@ avant le lancement) :
 
 1. Après l'ouverture de la PR, surveiller ses contrôles jusqu'au bout :
    `gh pr checks <n> --watch --interval 30`.
-2. **Tout est vert** : fusionner avec `gh pr merge <n> --squash --delete-branch`.
+2. **Tout est vert** : fusionner avec `gh pr merge <n> --squash`, **sans
+   `--delete-branch`**. La branche locale n'est jamais supprimée, ni par cette
+   option ni par un `git branch -d` : l'agent reste dessus après la fusion.
 3. **Un contrôle échoue** : lire le journal de l'échec (`gh run view <id> --log-failed`),
    corriger sur la branche, pousser, et surveiller à nouveau.
 4. **Trois échecs de suite, ou un échec qui ne vient pas de son travail**
@@ -438,6 +440,7 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Lancer un lot sans proposer le lot suivant | Le ticket reste à moitié livré et personne ne pense à la suite. On propose le lot d'après tout de suite. |
 | Mettre `Closes #<n>` sur la PR d'un lot qui n'est pas le dernier | Le ticket se referme alors qu'il reste des lots. `Refs #<n>` jusqu'au dernier. |
 | Enchaîner sur le ticket suivant sans demander | Le choix de continuer appartient au responsable produit, pas à l'agent. Seul le mode automatique, demandé par lui, l'autorise. |
+| Fusionner avec `--delete-branch`, ou supprimer la branche locale après la fusion | La branche locale reste toujours en place. `gh pr merge <n> --squash`, rien de plus. |
 | Lancer un agent sans lui dire de surveiller les contrôles et de fusionner | La PR reste ouverte, le mode automatique attend une fusion qui ne viendra jamais. |
 | En mode automatique, lancer la suite alors que l'agent s'est arrêté sans fusionner | Le ticket suivant part sur un `develop` qui n'a pas le précédent. On sort du mode et on prévient. |
 | En mode automatique, trancher seul une question technique ou un design pour ne pas s'arrêter | Le mode enchaîne les lancements, il ne prend aucune décision. |
