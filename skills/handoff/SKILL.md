@@ -15,7 +15,13 @@ Analyse le plan que tu as écris lors de cette session et vérifie qu'il peut ê
   (`superpowers:executing-plans`). Au-delà de 10 tâches, il exécute en subagent-driven
   development.
 - Assure toi que l'agent sache dans quelle branche git travailler.
-- Assure toi que l'agent reparte d'un ledger sdd propre.
+- Assure toi que l'agent reparte d'un ledger sdd propre. Le prompt dit **comment** : créer un
+  nouveau dossier ou un nouveau fichier (par exemple `W=$(mktemp -d)`), jamais vider l'ancien.
+- Le prompt interdit explicitement à l'agent toute commande `rm -rf` sur un chemin construit avec
+  une variable (`rm -rf "$W"/*`, `rm -rf $DIR/...`) : si la variable est vide, la commande efface
+  depuis la racine du disque. Elle est refusée et l'agent s'arrête. Une suppression, si elle est
+  vraiment nécessaire, se fait sur un chemin littéral, ou avec `"${W:?}"` qui échoue si la variable
+  est vide.
 - L'agent ne doit avoir aucune questions à poser et doit pouvoir passer directement à l'exécution du plan.
 - L'agent doit être autonomme pour l'étape de vérification visuelle. Il doit savoir ou trouver les identifiants de connexion et NE DOIT PAS me demander de les fournir ou de me connecter.
 
