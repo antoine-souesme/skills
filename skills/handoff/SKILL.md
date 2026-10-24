@@ -29,7 +29,7 @@ Analyse le plan que tu as écris lors de cette session et vérifie qu'il peut ê
 
 - Si l'agent met de coté une décision à voir plus tard, il doit la consigner dans le fichier docs/suivi/DETTE.md. Il doit consigner uniquement les décisions qu'il met de coté, pas les décisions qu'il prend.
 - PAS d'OVER-ENGINEERING dans DETTE.md. On reste fonctionnel et on respect la specification. On ne met AUCUN points qui ne sont pas critiques.
-- S'il y a des remontés critique (serveur de dev à lancer, docker qui ne tourne pas, problème qui bloque la suite de l'exécution), l'agent à le droit de poser une question.
+- S'il y a des remontés critique (serveur de dev à lancer, docker qui ne tourne pas, problème qui bloque la suite de l'exécution), l'agent s'arrête et pose sa question dans sa réponse finale : lancé en sous-agent, il ne peut pas me parler en cours de route.
 
 ## Après l'exécution
 

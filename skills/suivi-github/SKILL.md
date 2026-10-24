@@ -17,7 +17,7 @@ Chaque issue tombe dans une seule des trois catégories.
 | Question fonctionnelle | Le comportement attendu est ambigu, ou plusieurs lectures mènent à des produits différents | Commentaire sur le ticket + label `question`. Jamais de question au responsable produit. |
 | Question technique | Le comportement est clair, mais la façon de le modéliser ou de le brancher ne l'est pas | Question au responsable produit avec l'outil de question, avant de planifier |
 | Acceptée | Le besoin est clair et le code à écrire l'est aussi | Label `accepted`, plan d'implémentation, puis exécution |
-| Acceptée et petite | Le besoin est clair et la modification tient en quelques fichiers évidents | Label `accepted`, pas de spec ni de plan : traitement direct avec `/antoine:launching-agent-below` |
+| Acceptée et petite | Le besoin est clair et la modification tient en quelques fichiers évidents | Label `accepted`, pas de spec ni de plan : traitement direct avec `/antoine:launching-agent` |
 
 Une issue peut d'abord poser une question technique, puis devenir acceptée une
 fois la réponse obtenue. C'est le cas normal.
@@ -240,7 +240,7 @@ dans le prompt donné à l'agent qui implémente, pour qu'il ne l'oublie pas.
 
 C'est **l'agent qui implémente qui fusionne sa PR dans `develop`**, une fois les
 contrôles de la CI au vert. Personne ne fusionne à sa place. Le prompt qu'on lui
-donne le dit toujours, qu'il passe par `/antoine:launching-agent-below` ou par
+donne le dit toujours, qu'il passe par `/antoine:launching-agent` ou par
 `/antoine:spec-to-implementation` (dans ce cas, l'ajouter au prompt de handoff
 avant le lancement) :
 
@@ -256,12 +256,9 @@ avant le lancement) :
    et le dire dans le compte rendu final, en une ligne, avec le lien de la PR.
 5. Ne jamais fusionner une PR dont un contrôle est rouge ou encore en cours, et
    ne jamais contourner un contrôle (pas de `--admin`, pas de test désactivé).
-6. **Prévenir la session qui l'a lancé**, avec l'outil `SendMessage`, dès que la
-   PR est fusionnée ou dès qu'il s'arrête sans fusionner : « #<n> fusionnée »,
-   ou « #<n> non fusionnée : <raison> ». Le prompt lui donne le nom de cette
-   session, lu avec `ListAgents` (la ligne « This session is <nom> [<ref>] »),
-   **toujours avec sa référence entre crochets** : un agent lancé dans le même
-   dossier peut recevoir le même nom, et le nom seul deviendrait ambigu.
+6. **Commencer sa réponse finale** par « #<n> fusionnée », ou par
+   « #<n> non fusionnée : <raison> ». L'agent est un sous-agent de la session :
+   cette réponse lui revient toute seule quand il a fini.
 
 La fusion d'un lot qui n'est pas le dernier suit la même règle : sa PR porte
 `Refs #<n>`, le ticket reste ouvert.
@@ -298,7 +295,7 @@ nommer, aucune décision de modélisation, rien à trancher avec le responsable
 produit.
 
 Dans ce cas, pas de `/antoine:spec-to-implementation`. Poser le label `accepted`, puis
-lancer directement le travail avec `/antoine:launching-agent-below`, en décrivant dans
+lancer directement le travail avec `/antoine:launching-agent`, en décrivant dans
 le prompt le numéro de l'issue, ce qu'il faut changer et où.
 
 Sauter la spec ne fait pas sauter les garanties de `/antoine:spec-to-plan` et de
@@ -333,7 +330,7 @@ dessus.
 
 1. Trier les issues acceptées dans l'ordre où elles doivent être faites : celles
    dont d'autres dépendent d'abord.
-2. Lancer la première — `/antoine:spec-to-implementation`, ou `/antoine:launching-agent-below`
+2. Lancer la première — `/antoine:spec-to-implementation`, ou `/antoine:launching-agent`
    si le ticket ne mérite ni spec ni plan.
 3. Une fois le lancement effectif, proposer le suivant en une ligne : son numéro,
    son titre, et la façon dont il sera traité. Attendre la réponse. Si ce qui
@@ -365,15 +362,13 @@ que le responsable produit dise de l'arrêter.
 
 ### Attendre la fusion
 
-Pas de script de surveillance : **c'est l'agent qui prévient**, par la messagerie
-entre sessions (`SendMessage`), quand sa PR est fusionnée ou quand il s'arrête
-sans fusionner (voir « La fusion par l'agent »). Son message arrive tout seul
-dans la conversation ; la session ne fait rien en attendant.
+Pas de script de surveillance, pas de `sleep`, pas de réveil programmé :
+l'agent est un sous-agent de la session, **sa réponse finale arrive toute seule**
+quand sa PR est fusionnée ou quand il s'arrête sans fusionner (voir « La fusion
+par l'agent »). La session ne fait rien en attendant, et ne se ferme pas : l'agent
+s'arrêterait avec elle.
 
-Comme filet, programmer seulement un réveil long (`ScheduleWakeup`, vingt à
-trente minutes) : au réveil, regarder où en est l'agent avec
-`herdr agent read <nom> --source recent-unwrapped --lines 120`, et l'état de sa
-PR avec `gh pr list --head <branche> --state all`.
+À la réception, vérifier l'état de la PR avec `gh pr list --head <branche> --state all`.
 
 ### À la fusion
 
@@ -399,7 +394,7 @@ Quand la liste est vide, écrire le rapport final.
 
 ## Pendant qu'un agent travaille
 
-L'agent lancé avec `/antoine:launching-agent-below` ou `/antoine:spec-to-implementation`
+L'agent lancé avec `/antoine:launching-agent` ou `/antoine:spec-to-implementation`
 travaille **dans le même dossier de travail** que la session qui l'a lancé.
 Tant qu'il tourne, ce dossier lui appartient.
 
@@ -441,10 +436,9 @@ Tant qu'il tourne, ce dossier lui appartient.
 | Lancer un agent sans lui dire de surveiller les contrôles et de fusionner | La PR reste ouverte, le mode automatique attend une fusion qui ne viendra jamais. |
 | En mode automatique, lancer la suite alors que l'agent s'est arrêté sans fusionner | Le ticket suivant part sur un `develop` qui n'a pas le précédent. On sort du mode et on prévient. |
 | En mode automatique, trancher seul une question technique ou un design pour ne pas s'arrêter | Le mode enchaîne les lancements, il ne prend aucune décision. |
-| Attendre la fusion avec un script de surveillance ou `sleep` | L'agent prévient par `SendMessage`. Un réveil long sert seulement de filet. |
-| Donner à l'agent le nom de la session sans sa référence `[ref]` | Les sessions du même dossier peuvent porter le même nom. Nom et référence, toujours. |
-| Lancer un agent sans lui donner le nom de la session à prévenir | Il fusionne, et personne ne le sait. Le nom vient de `ListAgents`. |
-| Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent-below`. |
+| Attendre la fusion avec un script de surveillance, `sleep` ou un réveil | La réponse finale du sous-agent arrive toute seule. |
+| Fermer la session pendant qu'un agent tourne | L'agent est un sous-agent de la session : il s'arrête avec elle. |
+| Écrire une spec pour un changement de libellé | Traitement direct avec `/antoine:launching-agent`. |
 | Changer de branche ou commiter dans le dossier de travail pendant qu'un agent tourne | L'agent travaille dans ce même dossier : ses fichiers changent sous ses pieds. Worktree séparé, ou on attend qu'il ait fini. |
 | Créer la branche d'un petit ticket avant de lancer l'agent | C'est l'agent qui la crée, dans son prompt. La session qui lance ne touche pas à git. |
 | Lancer un petit ticket avec un prompt sans vérification visuelle | Sans plan, rien d'autre ne la demande : l'agent s'arrête au lint et au build. Le prompt reprend toutes les garanties du handoff. |
