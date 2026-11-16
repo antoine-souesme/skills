@@ -35,6 +35,7 @@ Pensez à augmenter `version` dans `.claude-plugin/plugin.json` à chaque public
 
 | Skill | Rôle |
 | --- | --- |
+| `suivi-client` | Assistant de suivi de la relation client : mémoire du dossier dans `_assistant/`, mails et demandes du client, cadrage, devis, annexe, contrat, factures. |
 | `deploy-production` | Mise en production du projet. |
 | `discord` | Envoie un message dans le canal Discord normal d'un ERP GKFA. |
 | `handle-dept` | Traite les points de dette mis de côté pendant l'exécution d'un plan. |
