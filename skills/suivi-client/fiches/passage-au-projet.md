@@ -23,6 +23,8 @@ Note au journal que le projet a démarré, et dans ETAT le chemin du dépôt de 
 
 Quand un échange avec le client change le projet, écris dans `<projet>/docs/suivi/` un document `AJOUTS_MODIFS_CLIENT_<date>.md` : ce qui change, les specs et les écrans de la maquette concernés, les numéros D-x du registre. Un nouveau mail le même jour complète le même document, dans une nouvelle partie. Puis donne à Antoine le prompt à passer à l'agent du dépôt pour l'appliquer.
 
+Le document et le prompt ne parlent jamais de la relation client : pas de prix du projet, pas de « inclus » ou « hors devis », pas de décision commerciale d'Antoine, pas d'appel ni de mail à venir avec le client, pas de chemin vers le dossier de suivi. Ils disent seulement quoi changer dans le projet. Les textes fournis par le client sont copiés dans `<projet>/docs/suivi/exemples-client/`.
+
 Le document et le prompt disent toujours à l'agent : si une modification touche une spec déjà développée, il ne reprend pas cette spec ; il ajoute la modification dans le bloc « fourre-tout » prévu pour la fin du développement (à créer s'il n'existe pas), avec la référence du document et de la spec concernée.
 
 ## Renommer un dossier
