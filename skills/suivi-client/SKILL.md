@@ -78,7 +78,7 @@ Lis la fiche au moment où la tâche se présente, pas avant.
 | Accord du client, contrat de prestation | `fiches/contrat.md` |
 | Acompte, solde, factures | `fiches/facturation.md` |
 | Avant d'envoyer un devis, un contrat ou un mail important | `fiches/relecture.md` |
-| Le projet démarre : préparer le dépôt de code, renommer un dossier | `fiches/passage-au-projet.md` |
+| Le projet démarre : préparer le dépôt de code, renommer un dossier ; pendant le développement, reporter les demandes du client dans le projet | `fiches/passage-au-projet.md` |
 
 ## Questions fréquentes d'Antoine
 

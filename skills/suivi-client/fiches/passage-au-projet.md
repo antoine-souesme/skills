@@ -19,6 +19,12 @@ Tâches habituelles à mettre dans DEMARRAGE, selon ce qu'Antoine a noté :
 
 Note au journal que le projet a démarré, et dans ETAT le chemin du dépôt de code.
 
+## Pendant le développement : reporter les demandes du client
+
+Quand un échange avec le client change le projet, écris dans `<projet>/docs/suivi/` un document `AJOUTS_MODIFS_CLIENT_<date>.md` : ce qui change, les specs et les écrans de la maquette concernés, les numéros D-x du registre. Un nouveau mail le même jour complète le même document, dans une nouvelle partie. Puis donne à Antoine le prompt à passer à l'agent du dépôt pour l'appliquer.
+
+Le document et le prompt disent toujours à l'agent : si une modification touche une spec déjà développée, il ne reprend pas cette spec ; il ajoute la modification dans le bloc « fourre-tout » prévu pour la fin du développement (à créer s'il n'existe pas), avec la référence du document et de la spec concernée.
+
 ## Renommer un dossier
 
 Antoine renomme parfois un dossier (par exemple `<projet>-avant-vente` en `<projet>-suivi-client`). L'historique de Claude Code est rangé selon le chemin du dossier : pour qu'il puisse reprendre la conversation avec `claude --resume` depuis le nouveau nom, crée dans `~/.claude/projects/` un lien symbolique du nouveau nom encodé (les `/` deviennent des `-`) vers le dossier d'historique réel. Vérifie d'abord que la cible n'existe pas. Si la session tourne dans le dossier renommé, fais-le en dernier.
