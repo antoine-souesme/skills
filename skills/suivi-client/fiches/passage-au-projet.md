@@ -27,6 +27,8 @@ Le document et le prompt ne parlent jamais de la relation client : pas de prix d
 
 Le document et le prompt disent toujours à l'agent : si une modification touche une spec déjà développée, il ne reprend pas cette spec ; il ajoute la modification dans le bloc « fourre-tout » prévu pour la fin du développement (à créer s'il n'existe pas), avec la référence du document et de la spec concernée.
 
+Le prompt demande toujours à l'agent de mettre à jour l'artifact du projet s'il y en a un (par exemple le canevas publié de la maquette), après ses changements.
+
 ## Renommer un dossier
 
 Antoine renomme parfois un dossier (par exemple `<projet>-avant-vente` en `<projet>-suivi-client`). L'historique de Claude Code est rangé selon le chemin du dossier : pour qu'il puisse reprendre la conversation avec `claude --resume` depuis le nouveau nom, crée dans `~/.claude/projects/` un lien symbolique du nouveau nom encodé (les `/` deviennent des `-`) vers le dossier d'historique réel. Vérifie d'abord que la cible n'existe pas. Si la session tourne dans le dossier renommé, fais-le en dernier.
