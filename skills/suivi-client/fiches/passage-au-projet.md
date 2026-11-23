@@ -29,6 +29,8 @@ Le document et le prompt disent toujours à l'agent : si une modification touche
 
 Le prompt demande toujours à l'agent de mettre à jour l'artifact du projet s'il y en a un (par exemple le canevas publié de la maquette), après ses changements.
 
+Le prompt et le document ne demandent jamais de compte rendu à l'agent, et ne lui demandent pas de « signaler » quelque chose à Antoine : Antoine suit l'agent lui-même. Après le lancement, ne note pas « relire le compte rendu » dans l'ETAT.
+
 ## Renommer un dossier
 
 Antoine renomme parfois un dossier (par exemple `<projet>-avant-vente` en `<projet>-suivi-client`). L'historique de Claude Code est rangé selon le chemin du dossier : pour qu'il puisse reprendre la conversation avec `claude --resume` depuis le nouveau nom, crée dans `~/.claude/projects/` un lien symbolique du nouveau nom encodé (les `/` deviennent des `-`) vers le dossier d'historique réel. Vérifie d'abord que la cible n'existe pas. Si la session tourne dans le dossier renommé, fais-le en dernier.
