@@ -109,13 +109,17 @@ Appliquer sur le projet distant de production les migrations déjà créées et 
 
 ```bash
 npx supabase link --project-ref <production-ref>   # confirmer que c'est bien la PROD
-npx supabase db push
-npx supabase db diff --linked                      # contrôle : aucune dérive attendue
+npx supabase migration list --remote               # voir les migrations à appliquer
+npx supabase db push --remote --yes                # applique sur la PROD
+npx supabase db diff --remote                      # contrôle : aucune dérive attendue
 npm run supabase:dump                              # si le schéma a changé sur le remote
 ```
 
+- **Toujours passer `--remote`** : sans cette option, `db push` et `db diff` visent la base **locale** et ne touchent pas la prod (le message « Local database is up to date » n'est pas un succès). `--linked` est obsolète.
+- **`--yes` est obligatoire** : en mode agent, le CLI refuse d'appliquer des migrations sur la prod sans confirmation (`HostedMutationConsentRequiredError`). Le feu vert de l'utilisateur (ou « automerge ») vaut cette confirmation.
+
 - Toujours vérifier que `<production-ref>` correspond bien au projet de production avant `db push`.
-- Si `db push` échoue ou que `db diff --linked` remonte une dérive : **STOP**, traiter avant de continuer. Ne pas passer à l'étape 8.
+- Si `db push` échoue ou que `db diff --remote` remonte une dérive : **STOP**, traiter avant de continuer. Ne pas passer à l'étape 8.
 - S'il n'y a aucune migration à appliquer, `db push` ne fait rien : c'est normal, continuer.
 
 ### Étape 8 - Fusionner la pull request (commit de fusion)
@@ -169,8 +173,8 @@ gh pr checks <numero>                               # 6. workflows au vert
 git push origin v<version>                          #    tag seul
 # 7. Supabase prod :
 npx supabase link --project-ref <production-ref>
-npx supabase db push
-npx supabase db diff --linked
+npx supabase db push --remote --yes
+npx supabase db diff --remote
 npm run supabase:dump                               # si nécessaire
 gh pr merge <numero> --merge                        # 8. uniquement si étape 7 OK, jamais squash
 git checkout main && git pull origin main           # 9.
@@ -184,6 +188,6 @@ git checkout develop && git merge main && git push origin develop
 - **Pull request ouverte et pas de feu vert** → ne rien faire, attendre.
 - **Workflows de la pull request en échec ou en cours** → STOP, signaler (en mode automerge : attendre la fin s'ils sont en cours, STOP s'ils échouent).
 - **Conflit de merge** → STOP, signaler.
-- **`db push` échoue / dérive `db diff --linked`** → STOP, ne pas fusionner la pull request.
+- **`db push` échoue / dérive `db diff --remote`** → STOP, ne pas fusionner la pull request.
 - **Projet distant non confirmé comme la prod** → ne pas `db push`.
 - **Fusion refusée par GitHub (mode de fusion non autorisé)** → STOP, signaler, ne jamais basculer sur `--squash` ou `--rebase`.
